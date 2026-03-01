@@ -1,0 +1,21 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./app/**/*.{js,jsx,ts,tsx}",
+    "./components/**/*.{js,jsx,ts,tsx}",
+    "./hooks/**/*.{js,jsx,ts,tsx}",
+    "./lib/**/*.{js,jsx,ts,tsx}",
+  ],
+  presets: [require("nativewind/preset")],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ["Poppins_400Regular"],
+        medium: ["Poppins_500Medium"],
+        semibold: ["Poppins_600SemiBold"],
+        bold: ["Poppins_700Bold"],
+      },
+    },
+  },
+  plugins: [],
+};
