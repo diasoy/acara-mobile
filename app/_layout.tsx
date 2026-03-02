@@ -9,6 +9,7 @@ import {
 } from "@expo-google-fonts/manrope";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, Text, TextInput, View } from "react-native";
 
 import { AuthProvider } from "@/hooks/useAuth";
@@ -62,6 +63,7 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <StatusBar style="light" backgroundColor="#09071d" translucent={false} />
         <Stack screenOptions={{ headerShown: false }} />
       </AuthProvider>
     </QueryClientProvider>

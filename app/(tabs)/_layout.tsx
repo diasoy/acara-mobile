@@ -44,9 +44,10 @@ export default function TabsLayout() {
         },
       })}
     >
-      <Tabs.Screen name="home" options={{ title: "Home" }} />
-      <Tabs.Screen name="transaksi" options={{ title: "Transaksi" }} />
-      <Tabs.Screen name="profile" options={{ title: "Profile" }} />
+      <Tabs.Screen
+        name="home"
+        options={{ title: "Home", headerShown: false }}
+      />
       <Tabs.Screen
         name="event"
         options={{
@@ -54,6 +55,8 @@ export default function TabsLayout() {
           href: isAdmin ? "/(tabs)/event" : null,
         }}
       />
+      <Tabs.Screen name="transaksi" options={{ title: "Transaksi" }} />
+      <Tabs.Screen name="profile" options={{ title: "Profile" }} />
     </Tabs>
   );
 }
