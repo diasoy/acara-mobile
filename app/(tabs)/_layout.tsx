@@ -25,9 +25,11 @@ export default function TabsLayout() {
       screenOptions={({ route }) => ({
         headerStyle: { backgroundColor: "#0f172a" },
         headerTintColor: "#f8fafc",
+        headerTitleStyle: { fontFamily: "Manrope_600SemiBold" },
         tabBarStyle: { backgroundColor: "#0f172a", borderTopColor: "#1e293b" },
         tabBarActiveTintColor: "#10b981",
         tabBarInactiveTintColor: "#94a3b8",
+        tabBarLabelStyle: { fontFamily: "Manrope_500Medium" },
         tabBarIcon: ({ color, size }) => {
           const iconName =
             route.name === "home"

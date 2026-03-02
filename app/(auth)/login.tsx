@@ -31,13 +31,13 @@ const LoginScreen = () => {
   return (
     <View className="flex-1 justify-center bg-slate-950 px-6">
       <View className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-        <Text className="mb-1 text-2xl font-bold text-white">Masuk</Text>
-        <Text className="mb-6 text-slate-300">Gunakan akun yang sudah terdaftar.</Text>
+        <Text className="mb-1 text-2xl font-manrope-bold text-white">Masuk</Text>
+        <Text className="mb-6 font-manrope text-slate-300">Gunakan akun yang sudah terdaftar.</Text>
 
         <View className="mb-3">
-          <Text className="mb-2 text-slate-200">Email / Username</Text>
+          <Text className="mb-2 font-manrope-medium text-slate-200">Email / Username</Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 text-white"
+            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
             placeholder="johndoe / email@domain.com"
             placeholderTextColor="#94a3b8"
             autoCapitalize="none"
@@ -47,9 +47,9 @@ const LoginScreen = () => {
         </View>
 
         <View className="mb-5">
-          <Text className="mb-2 text-slate-200">Password</Text>
+          <Text className="mb-2 font-manrope-medium text-slate-200">Password</Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 text-white"
+            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
             placeholder="Password"
             placeholderTextColor="#94a3b8"
             secureTextEntry
@@ -63,16 +63,16 @@ const LoginScreen = () => {
           disabled={!canSubmit}
           onPress={onSubmit}
         >
-          <Text className="text-center font-semibold text-white">
+          <Text className="text-center font-manrope-semibold text-white">
             {loginPending ? "Memproses..." : "Login"}
           </Text>
         </Pressable>
 
         <View className="mt-5 flex-row justify-center">
-          <Text className="text-slate-300">Belum punya akun? </Text>
+          <Text className="font-manrope text-slate-300">Belum punya akun? </Text>
           <Link href="/(auth)/register" asChild>
             <Pressable>
-              <Text className="font-semibold text-emerald-400">Daftar</Text>
+              <Text className="font-manrope-semibold text-emerald-400">Daftar</Text>
             </Pressable>
           </Link>
         </View>

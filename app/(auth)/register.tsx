@@ -50,13 +50,15 @@ const RegisterScreen = () => {
   return (
     <ScrollView className="flex-1 bg-slate-950" contentContainerClassName="px-6 py-10">
       <View className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-        <Text className="mb-1 text-2xl font-bold text-white">Daftar</Text>
-        <Text className="mb-6 text-slate-300">Buat akun baru untuk mulai menggunakan aplikasi.</Text>
+        <Text className="mb-1 text-2xl font-manrope-bold text-white">Daftar</Text>
+        <Text className="mb-6 font-manrope text-slate-300">
+          Buat akun baru untuk mulai menggunakan aplikasi.
+        </Text>
 
         <View className="mb-3">
-          <Text className="mb-2 text-slate-200">Nama Lengkap</Text>
+          <Text className="mb-2 font-manrope-medium text-slate-200">Nama Lengkap</Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 text-white"
+            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
             placeholder="John Doe"
             placeholderTextColor="#94a3b8"
             value={fullName}
@@ -65,9 +67,9 @@ const RegisterScreen = () => {
         </View>
 
         <View className="mb-3">
-          <Text className="mb-2 text-slate-200">Username</Text>
+          <Text className="mb-2 font-manrope-medium text-slate-200">Username</Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 text-white"
+            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
             placeholder="johndoe"
             placeholderTextColor="#94a3b8"
             autoCapitalize="none"
@@ -77,9 +79,9 @@ const RegisterScreen = () => {
         </View>
 
         <View className="mb-3">
-          <Text className="mb-2 text-slate-200">Email</Text>
+          <Text className="mb-2 font-manrope-medium text-slate-200">Email</Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 text-white"
+            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
             placeholder="john@domain.com"
             placeholderTextColor="#94a3b8"
             keyboardType="email-address"
@@ -90,9 +92,9 @@ const RegisterScreen = () => {
         </View>
 
         <View className="mb-3">
-          <Text className="mb-2 text-slate-200">Password</Text>
+          <Text className="mb-2 font-manrope-medium text-slate-200">Password</Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 text-white"
+            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
             placeholder="********"
             placeholderTextColor="#94a3b8"
             secureTextEntry
@@ -102,9 +104,9 @@ const RegisterScreen = () => {
         </View>
 
         <View className="mb-5">
-          <Text className="mb-2 text-slate-200">Konfirmasi Password</Text>
+          <Text className="mb-2 font-manrope-medium text-slate-200">Konfirmasi Password</Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 text-white"
+            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
             placeholder="********"
             placeholderTextColor="#94a3b8"
             secureTextEntry
@@ -118,16 +120,16 @@ const RegisterScreen = () => {
           disabled={!canSubmit}
           onPress={onSubmit}
         >
-          <Text className="text-center font-semibold text-white">
+          <Text className="text-center font-manrope-semibold text-white">
             {registerPending ? "Memproses..." : "Daftar"}
           </Text>
         </Pressable>
 
         <View className="mt-5 flex-row justify-center">
-          <Text className="text-slate-300">Sudah punya akun? </Text>
+          <Text className="font-manrope text-slate-300">Sudah punya akun? </Text>
           <Link href="/(auth)/login" asChild>
             <Pressable>
-              <Text className="font-semibold text-emerald-400">Login</Text>
+              <Text className="font-manrope-semibold text-emerald-400">Login</Text>
             </Pressable>
           </Link>
         </View>
