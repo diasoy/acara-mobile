@@ -44,6 +44,12 @@ export default function AdminRootLayout() {
         }}
       />
       <Stack.Screen
+        name="event/[id]"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="category/index"
         options={{
           title: "Category List",

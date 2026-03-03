@@ -1,17 +1,20 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Pressable,
   ScrollView,
   Text,
   TextInput,
+  ToastAndroid,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useEvents } from "@/hooks/useEvent";
+import { useDeleteEvent, useEvents } from "@/hooks/useEvent";
 import type { Event } from "@/types/event";
 
 type EventFilter = "all" | "published" | "draft" | "featured";
@@ -41,8 +44,6 @@ const timeFormatter = new Intl.DateTimeFormat("en-US", {
   hour: "2-digit",
   minute: "2-digit",
 });
-
-const noop = () => undefined;
 
 function getEventTimestamp(rawDate: string) {
   const parsedDate = new Date(rawDate);
@@ -91,7 +92,21 @@ function StatusBadge({ label, tone }: { label: string; tone: BadgeTone }) {
   );
 }
 
-function EventCard({ event }: { event: Event }) {
+type EventCardProps = {
+  event: Event;
+  onOpenDetail: (id: string) => void;
+  onOpenEdit: (id: string) => void;
+  onDelete: (event: Event) => void;
+  isDeleting: boolean;
+};
+
+function EventCard({
+  event,
+  onOpenDetail,
+  onOpenEdit,
+  onDelete,
+  isDeleting,
+}: EventCardProps) {
   const badges: { tone: BadgeTone; label: string }[] = [];
 
   if (event.isFeatured) {
@@ -129,11 +144,7 @@ function EventCard({ event }: { event: Event }) {
           </Text>
 
           <View className="mt-1 flex-row items-center">
-            <Ionicons
-              name="calendar-clear-outline"
-              size={14}
-              color="#8f8bb9"
-            />
+            <Ionicons name="calendar-clear-outline" size={14} color="#8f8bb9" />
             <Text
               numberOfLines={1}
               className="ml-1.5 font-manrope text-[12px] text-[#b7b2dc]"
@@ -171,22 +182,29 @@ function EventCard({ event }: { event: Event }) {
       <View className="mt-4 flex-row items-center justify-between">
         <View className="flex-row items-center">
           <Pressable
-            onPress={noop}
-            className="h-8 w-8 items-center justify-center rounded-lg bg-[#251d5a] active:opacity-80"
+            onPress={() => onOpenEdit(event._id)}
+            disabled={isDeleting}
+            className="h-8 w-8 items-center justify-center rounded-lg bg-[#251d5a] active:opacity-80 disabled:opacity-40"
           >
             <Ionicons name="create-outline" size={14} color="#f3f2ff" />
           </Pressable>
           <Pressable
-            onPress={noop}
-            className="ml-2 h-8 w-8 items-center justify-center rounded-lg bg-[#251d5a] active:opacity-80"
+            onPress={() => onDelete(event)}
+            disabled={isDeleting}
+            className="ml-2 h-8 w-8 items-center justify-center rounded-lg bg-[#251d5a] active:opacity-80 disabled:opacity-40"
           >
-            <Ionicons name="trash-outline" size={14} color="#f3f2ff" />
+            {isDeleting ? (
+              <ActivityIndicator size="small" color="#f3f2ff" />
+            ) : (
+              <Ionicons name="trash-outline" size={14} color="#f3f2ff" />
+            )}
           </Pressable>
         </View>
 
         <Pressable
-          onPress={noop}
-          className="flex-row items-center rounded-xl bg-[#3d29ff] px-4 py-2 active:opacity-80"
+          onPress={() => onOpenDetail(event._id)}
+          disabled={isDeleting}
+          className="flex-row items-center rounded-xl bg-[#3d29ff] px-4 py-2 active:opacity-80 disabled:opacity-40"
         >
           <Text className="font-manrope-bold text-xs text-white">DETAILS</Text>
           <Ionicons
@@ -202,9 +220,57 @@ function EventCard({ event }: { event: Event }) {
 }
 
 export default function EventScreen() {
+  const router = useRouter();
   const { data, isLoading, isError } = useEvents();
+  const deleteEventMutation = useDeleteEvent();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [activeFilter, setActiveFilter] = useState<EventFilter>("all");
+  const deletingEventId = deleteEventMutation.isPending
+    ? deleteEventMutation.variables
+    : undefined;
+
+  const openDetail = (eventId: string) => {
+    router.push({
+      pathname: "/(admin)/event/[id]",
+      params: { id: eventId },
+    });
+  };
+
+  const openEdit = (eventId: string) => {
+    router.push({
+      pathname: "/(admin)/event/[id]",
+      params: { id: eventId, mode: "edit" },
+    });
+  };
+
+  const runDeleteEvent = async (event: Event) => {
+    try {
+      await deleteEventMutation.mutateAsync(event._id);
+      ToastAndroid.show("Event berhasil dihapus.", ToastAndroid.SHORT);
+    } catch {
+      // Toast error already handled in service.
+    }
+  };
+
+  const confirmDeleteEvent = (event: Event) => {
+    if (deleteEventMutation.isPending) {
+      return;
+    }
+
+    Alert.alert("Hapus Event", `Hapus event "${event.name}"?`, [
+      {
+        text: "Batal",
+        style: "cancel",
+      },
+      {
+        text: "Hapus",
+        style: "destructive",
+        onPress: () => {
+          void runDeleteEvent(event);
+        },
+      },
+    ]);
+  };
 
   const filteredEvents = useMemo(() => {
     const events = data?.data ?? [];
@@ -324,7 +390,14 @@ export default function EventScreen() {
 
           <View className="mt-3 gap-4">
             {filteredEvents.map((event) => (
-              <EventCard key={event._id} event={event} />
+              <EventCard
+                key={event._id}
+                event={event}
+                onOpenDetail={openDetail}
+                onOpenEdit={openEdit}
+                onDelete={confirmDeleteEvent}
+                isDeleting={deletingEventId === event._id}
+              />
             ))}
           </View>
 
@@ -339,8 +412,14 @@ export default function EventScreen() {
         </ScrollView>
 
         <Pressable
-          onPress={noop}
-          className="absolute bottom-8 right-5 h-14 w-14 items-center justify-center rounded-full bg-[#4a2dfd] active:opacity-80"
+          onPress={() => {
+            ToastAndroid.show(
+              "Form create event belum tersedia.",
+              ToastAndroid.SHORT,
+            );
+          }}
+          disabled={deleteEventMutation.isPending}
+          className="absolute bottom-8 right-5 h-14 w-14 items-center justify-center rounded-full bg-[#4a2dfd] active:opacity-80 disabled:opacity-40"
         >
           <Ionicons name="add" size={34} color="#ffffff" />
         </Pressable>
