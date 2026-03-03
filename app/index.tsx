@@ -2,13 +2,17 @@ import { Redirect } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useThemeMode } from "@/hooks/useThemeMode";
 
 export default function Index() {
-  const { isAuthHydrating, isAuthenticated } = useAuth();
+  const { isAuthHydrating, isAuthenticated, isLoadingMe, user } = useAuth();
+  const { isDarkMode } = useThemeMode();
 
-  if (isAuthHydrating) {
+  if (isAuthHydrating || (isAuthenticated && isLoadingMe && !user)) {
     return (
-      <View className="flex-1 items-center justify-center bg-slate-950">
+      <View
+        className={`flex-1 items-center justify-center ${isDarkMode ? "bg-slate-950" : "bg-slate-100"}`}
+      >
         <ActivityIndicator color="#10b981" />
       </View>
     );
@@ -18,5 +22,13 @@ export default function Index() {
     return <Redirect href="/(auth)/login" />;
   }
 
-  return <Redirect href="/(tabs)/home" />;
+  if (user?.role === "admin") {
+    return <Redirect href="/(admin)/home" />;
+  }
+
+  if (user?.role === "member") {
+    return <Redirect href="/(member)/home" />;
+  }
+
+  return <Redirect href="/(auth)/login" />;
 }

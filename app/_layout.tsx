@@ -13,6 +13,7 @@ import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, Text, TextInput, View } from "react-native";
 
 import { AuthProvider } from "@/hooks/useAuth";
+import { ThemeProvider, useThemeMode } from "@/hooks/useThemeMode";
 import { queryClient } from "@/lib/query-client";
 
 let hasAppliedDefaultFont = false;
@@ -62,10 +63,26 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <StatusBar style="light" backgroundColor="#09071d" translucent={false} />
-        <Stack screenOptions={{ headerShown: false }} />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppShell />
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
+  );
+}
+
+function AppShell() {
+  const { isDarkMode } = useThemeMode();
+
+  return (
+    <>
+      <StatusBar
+        style={isDarkMode ? "light" : "dark"}
+        backgroundColor={isDarkMode ? "#09071d" : "#f1f5f9"}
+        translucent={false}
+      />
+      <Stack screenOptions={{ headerShown: false }} />
+    </>
   );
 }

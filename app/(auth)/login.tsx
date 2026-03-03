@@ -3,10 +3,12 @@ import React, { useState } from "react";
 import { Alert, Pressable, Text, TextInput, View } from "react-native";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useThemeMode } from "@/hooks/useThemeMode";
 import { getApiErrorMessage } from "@/lib/get-api-error-message";
 
 const LoginScreen = () => {
   const { login, loginPending } = useAuth();
+  const { isDarkMode } = useThemeMode();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
 
@@ -29,17 +31,25 @@ const LoginScreen = () => {
   };
 
   return (
-    <View className="flex-1 justify-center bg-slate-950 px-6">
-      <View className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-        <Text className="mb-1 text-2xl font-manrope-bold text-white">Masuk</Text>
-        <Text className="mb-6 font-manrope text-slate-300">Gunakan akun yang sudah terdaftar.</Text>
+    <View className={`flex-1 justify-center px-6 ${isDarkMode ? "bg-slate-950" : "bg-slate-100"}`}>
+      <View
+        className={`rounded-2xl border p-5 ${isDarkMode ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"}`}
+      >
+        <Text className={`mb-1 text-2xl font-manrope-bold ${isDarkMode ? "text-white" : "text-slate-900"}`}>
+          Masuk
+        </Text>
+        <Text className={`mb-6 font-manrope ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>
+          Gunakan akun yang sudah terdaftar.
+        </Text>
 
         <View className="mb-3">
-          <Text className="mb-2 font-manrope-medium text-slate-200">Email / Username</Text>
+          <Text className={`mb-2 font-manrope-medium ${isDarkMode ? "text-slate-200" : "text-slate-700"}`}>
+            Email / Username
+          </Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
+            className={`rounded-lg border px-4 py-3 font-manrope ${isDarkMode ? "border-slate-700 text-white" : "border-slate-300 text-slate-900"}`}
             placeholder="johndoe / email@domain.com"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={isDarkMode ? "#94a3b8" : "#64748b"}
             autoCapitalize="none"
             value={identifier}
             onChangeText={setIdentifier}
@@ -47,11 +57,13 @@ const LoginScreen = () => {
         </View>
 
         <View className="mb-5">
-          <Text className="mb-2 font-manrope-medium text-slate-200">Password</Text>
+          <Text className={`mb-2 font-manrope-medium ${isDarkMode ? "text-slate-200" : "text-slate-700"}`}>
+            Password
+          </Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
+            className={`rounded-lg border px-4 py-3 font-manrope ${isDarkMode ? "border-slate-700 text-white" : "border-slate-300 text-slate-900"}`}
             placeholder="Password"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={isDarkMode ? "#94a3b8" : "#64748b"}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -69,7 +81,9 @@ const LoginScreen = () => {
         </Pressable>
 
         <View className="mt-5 flex-row justify-center">
-          <Text className="font-manrope text-slate-300">Belum punya akun? </Text>
+          <Text className={`font-manrope ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>
+            Belum punya akun?{" "}
+          </Text>
           <Link href="/(auth)/register" asChild>
             <Pressable>
               <Text className="font-manrope-semibold text-emerald-400">Daftar</Text>

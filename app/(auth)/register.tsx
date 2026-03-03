@@ -3,10 +3,12 @@ import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useThemeMode } from "@/hooks/useThemeMode";
 import { getApiErrorMessage } from "@/lib/get-api-error-message";
 
 const RegisterScreen = () => {
   const { register, registerPending } = useAuth();
+  const { isDarkMode } = useThemeMode();
   const [fullName, setFullName] = useState("");
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
@@ -48,30 +50,41 @@ const RegisterScreen = () => {
   };
 
   return (
-    <ScrollView className="flex-1 bg-slate-950" contentContainerClassName="px-6 py-10">
-      <View className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-        <Text className="mb-1 text-2xl font-manrope-bold text-white">Daftar</Text>
-        <Text className="mb-6 font-manrope text-slate-300">
+    <ScrollView
+      className={`flex-1 ${isDarkMode ? "bg-slate-950" : "bg-slate-100"}`}
+      contentContainerClassName="px-6 py-10"
+    >
+      <View
+        className={`rounded-2xl border p-5 ${isDarkMode ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"}`}
+      >
+        <Text className={`mb-1 text-2xl font-manrope-bold ${isDarkMode ? "text-white" : "text-slate-900"}`}>
+          Daftar
+        </Text>
+        <Text className={`mb-6 font-manrope ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>
           Buat akun baru untuk mulai menggunakan aplikasi.
         </Text>
 
         <View className="mb-3">
-          <Text className="mb-2 font-manrope-medium text-slate-200">Nama Lengkap</Text>
+          <Text className={`mb-2 font-manrope-medium ${isDarkMode ? "text-slate-200" : "text-slate-700"}`}>
+            Nama Lengkap
+          </Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
+            className={`rounded-lg border px-4 py-3 font-manrope ${isDarkMode ? "border-slate-700 text-white" : "border-slate-300 text-slate-900"}`}
             placeholder="John Doe"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={isDarkMode ? "#94a3b8" : "#64748b"}
             value={fullName}
             onChangeText={setFullName}
           />
         </View>
 
         <View className="mb-3">
-          <Text className="mb-2 font-manrope-medium text-slate-200">Username</Text>
+          <Text className={`mb-2 font-manrope-medium ${isDarkMode ? "text-slate-200" : "text-slate-700"}`}>
+            Username
+          </Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
+            className={`rounded-lg border px-4 py-3 font-manrope ${isDarkMode ? "border-slate-700 text-white" : "border-slate-300 text-slate-900"}`}
             placeholder="johndoe"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={isDarkMode ? "#94a3b8" : "#64748b"}
             autoCapitalize="none"
             value={userName}
             onChangeText={setUserName}
@@ -79,11 +92,13 @@ const RegisterScreen = () => {
         </View>
 
         <View className="mb-3">
-          <Text className="mb-2 font-manrope-medium text-slate-200">Email</Text>
+          <Text className={`mb-2 font-manrope-medium ${isDarkMode ? "text-slate-200" : "text-slate-700"}`}>
+            Email
+          </Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
+            className={`rounded-lg border px-4 py-3 font-manrope ${isDarkMode ? "border-slate-700 text-white" : "border-slate-300 text-slate-900"}`}
             placeholder="john@domain.com"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={isDarkMode ? "#94a3b8" : "#64748b"}
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
@@ -92,11 +107,13 @@ const RegisterScreen = () => {
         </View>
 
         <View className="mb-3">
-          <Text className="mb-2 font-manrope-medium text-slate-200">Password</Text>
+          <Text className={`mb-2 font-manrope-medium ${isDarkMode ? "text-slate-200" : "text-slate-700"}`}>
+            Password
+          </Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
+            className={`rounded-lg border px-4 py-3 font-manrope ${isDarkMode ? "border-slate-700 text-white" : "border-slate-300 text-slate-900"}`}
             placeholder="********"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={isDarkMode ? "#94a3b8" : "#64748b"}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -104,11 +121,13 @@ const RegisterScreen = () => {
         </View>
 
         <View className="mb-5">
-          <Text className="mb-2 font-manrope-medium text-slate-200">Konfirmasi Password</Text>
+          <Text className={`mb-2 font-manrope-medium ${isDarkMode ? "text-slate-200" : "text-slate-700"}`}>
+            Konfirmasi Password
+          </Text>
           <TextInput
-            className="rounded-lg border border-slate-700 px-4 py-3 font-manrope text-white"
+            className={`rounded-lg border px-4 py-3 font-manrope ${isDarkMode ? "border-slate-700 text-white" : "border-slate-300 text-slate-900"}`}
             placeholder="********"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={isDarkMode ? "#94a3b8" : "#64748b"}
             secureTextEntry
             value={confirmPassword}
             onChangeText={setConfirmPassword}
@@ -126,7 +145,9 @@ const RegisterScreen = () => {
         </Pressable>
 
         <View className="mt-5 flex-row justify-center">
-          <Text className="font-manrope text-slate-300">Sudah punya akun? </Text>
+          <Text className={`font-manrope ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>
+            Sudah punya akun?{" "}
+          </Text>
           <Link href="/(auth)/login" asChild>
             <Pressable>
               <Text className="font-manrope-semibold text-emerald-400">Login</Text>
