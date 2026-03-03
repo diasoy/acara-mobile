@@ -248,7 +248,10 @@ export default function EventScreen() {
       await deleteEventMutation.mutateAsync(event._id);
       ToastAndroid.show("Event berhasil dihapus.", ToastAndroid.SHORT);
     } catch {
-      // Toast error already handled in service.
+      ToastAndroid.show(
+        "Gagal menghapus event. Coba lagi.",
+        ToastAndroid.SHORT,
+      );
     }
   };
 

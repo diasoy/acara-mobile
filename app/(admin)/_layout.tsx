@@ -64,6 +64,18 @@ export default function AdminRootLayout() {
         }}
       />
       <Stack.Screen
+        name="banner/[id]"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="banner/create"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="transaction/index"
         options={{
           title: "Transaction Reports",
