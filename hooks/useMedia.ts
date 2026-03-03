@@ -1,8 +1,15 @@
 import {
+    removeMedia,
     uploadMediaMultiple,
     uploadMediaSingle,
 } from "@/services/media.service";
-import { Media, MediaMultiplePayload, MediaPayload } from "@/types/media";
+import {
+  Media,
+  MediaMultiplePayload,
+  MediaPayload,
+  RemoveMediaPayload,
+  RemoveMediaResponse,
+} from "@/types/media";
 import { useMutation } from "@tanstack/react-query";
 
 export function useUploadMediaSingle() {
@@ -20,5 +27,11 @@ export function useUploadMediaMultiple() {
       const response = await uploadMediaMultiple(payload);
       return response.data;
     },
+  });
+}
+
+export function useRemoveMedia() {
+  return useMutation<RemoveMediaResponse, Error, RemoveMediaPayload>({
+    mutationFn: removeMedia,
   });
 }

@@ -15,9 +15,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useCreateBanner } from "@/hooks/useBanner";
 import { useUploadMediaSingle } from "@/hooks/useMedia";
 import { getApiErrorMessage } from "@/lib/get-api-error-message";
-import { createBanner } from "@/services/banner.service";
 import type { CreateBannerPayload } from "@/types/banner";
 
 export default function CreateBannerScreen() {
@@ -28,6 +28,7 @@ export default function CreateBannerScreen() {
     name: string;
     type: string;
   } | null>(null);
+  const createBannerMutation = useCreateBanner();
 
   const { mutate: uploadMedia, isPending: isUploading } =
     useUploadMediaSingle();
@@ -113,7 +114,7 @@ export default function CreateBannerScreen() {
 
     try {
       setIsSaving(true);
-      await createBanner(formData);
+      await createBannerMutation.mutateAsync(formData);
       ToastAndroid.show("Banner berhasil dibuat", ToastAndroid.SHORT);
       router.back();
     } catch {
@@ -160,7 +161,7 @@ export default function CreateBannerScreen() {
                 <View className="h-full w-full items-center justify-center">
                   <Ionicons name="image-outline" size={48} color="#64748b" />
                   <Text className="mt-2 font-manrope text-slate-400">
-                    No image``
+                    No image
                   </Text>
                 </View>
               )}

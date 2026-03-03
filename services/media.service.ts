@@ -4,6 +4,8 @@ import { getApiErrorMessage } from "@/lib/get-api-error-message";
 import {
   MediaMultiplePayload,
   MediaPayload,
+  RemoveMediaPayload,
+  RemoveMediaResponse,
   UploadMediaMultipleResponse,
   UploadMediaSingleResponse,
 } from "@/types/media";
@@ -157,6 +159,24 @@ export async function uploadMediaMultiple(
   } catch (error) {
     ToastAndroid.show(
       getApiErrorMessage(error, "Gagal upload media. Silakan coba lagi."),
+      ToastAndroid.SHORT,
+    );
+    throw error;
+  }
+}
+
+export async function removeMedia(
+  payload: RemoveMediaPayload,
+): Promise<RemoveMediaResponse> {
+  try {
+    const response = await api.delete("/media/remove", {
+      data: payload,
+    });
+
+    return response.data;
+  } catch (error) {
+    ToastAndroid.show(
+      getApiErrorMessage(error, "Gagal menghapus media lama."),
       ToastAndroid.SHORT,
     );
     throw error;

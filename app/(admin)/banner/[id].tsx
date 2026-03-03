@@ -1,55 +1,74 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Image,
-    Pressable,
-    ScrollView,
-    Switch,
-    Text,
-    TextInput,
-    ToastAndroid,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  Switch,
+  Text,
+  TextInput,
+  ToastAndroid,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useUploadMediaSingle } from "@/hooks/useMedia";
+import {
+  useBannerById,
+  useDeleteBanner,
+  useUpdateBanner,
+} from "@/hooks/useBanner";
+import { useRemoveMedia, useUploadMediaSingle } from "@/hooks/useMedia";
 import { getApiErrorMessage } from "@/lib/get-api-error-message";
-import { updateBanner } from "@/services/banner.service";
 import type { UpdateBannerPayload } from "@/types/banner";
 
 export default function EditBannerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { data, isLoading, isError, refetch, isRefetching } = useBannerById(id || "");
+  const updateBannerMutation = useUpdateBanner();
+  const deleteBannerMutation = useDeleteBanner();
+  const removeMediaMutation = useRemoveMedia();
+  const { mutate: uploadMedia, isPending: isUploading } = useUploadMediaSingle();
   const [isSaving, setIsSaving] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{
     uri: string;
     name: string;
     type: string;
   } | null>(null);
-
-  const { mutate: uploadMedia, isPending: isUploading } =
-    useUploadMediaSingle();
-
-  // TODO: Fetch banner data by id using getBannerById
-  // useEffect(() => {
-  //   if (id) {
-  //     fetchBanner();
-  //   }
-  // }, [id]);
-
+  const [originalImage, setOriginalImage] = useState("");
   const [formData, setFormData] = useState<UpdateBannerPayload>({
     title: "",
     image: "",
     isShow: true,
   });
 
+  const banner = data?.data;
+  const isBusy = isSaving
+    || isUploading
+    || updateBannerMutation.isPending
+    || deleteBannerMutation.isPending
+    || removeMediaMutation.isPending;
+
+  useEffect(() => {
+    if (!banner) {
+      return;
+    }
+
+    setFormData({
+      title: banner.title,
+      image: banner.image,
+      isShow: banner.isShow,
+    });
+    setOriginalImage(banner.image || "");
+  }, [banner]);
+
   const handlePickImage = async () => {
     try {
-      const permission =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permission.granted) {
         ToastAndroid.show("Izin akses galeri diperlukan", ToastAndroid.SHORT);
@@ -77,8 +96,10 @@ export default function EditBannerScreen() {
         type: fileType,
       });
     } catch (error) {
-      console.error("Pick image error:", error);
-      ToastAndroid.show("Gagal memilih gambar", ToastAndroid.SHORT);
+      ToastAndroid.show(
+        getApiErrorMessage(error, "Gagal memilih gambar"),
+        ToastAndroid.SHORT,
+      );
     }
   };
 
@@ -94,7 +115,7 @@ export default function EditBannerScreen() {
       },
       {
         onSuccess: (media) => {
-          setFormData({ ...formData, image: media.secure_url });
+          setFormData((current) => ({ ...current, image: media.secure_url }));
           setSelectedImage(null);
           ToastAndroid.show("Gambar berhasil diupload", ToastAndroid.SHORT);
         },
@@ -108,7 +129,29 @@ export default function EditBannerScreen() {
     );
   };
 
+  const removeOldImageIfChanged = async () => {
+    const currentImage = originalImage.trim();
+    const nextImage = (formData.image || "").trim();
+
+    if (!currentImage || currentImage === nextImage) {
+      return;
+    }
+
+    try {
+      await removeMediaMutation.mutateAsync({ fileUrl: currentImage });
+    } catch {
+      ToastAndroid.show(
+        "Banner diperbarui, tetapi gambar lama gagal dihapus.",
+        ToastAndroid.SHORT,
+      );
+    }
+  };
+
   const handleSave = async () => {
+    if (!id || !banner) {
+      return;
+    }
+
     if (!formData.title?.trim()) {
       ToastAndroid.show("Masukkan judul banner", ToastAndroid.SHORT);
       return;
@@ -121,20 +164,110 @@ export default function EditBannerScreen() {
 
     try {
       setIsSaving(true);
-      await updateBanner(id || "", formData);
+      await updateBannerMutation.mutateAsync({
+        id,
+        payload: {
+          title: formData.title.trim(),
+          image: formData.image.trim(),
+          isShow: !!formData.isShow,
+        },
+      });
+      await removeOldImageIfChanged();
+      setOriginalImage(formData.image.trim());
+
       ToastAndroid.show("Banner berhasil diperbarui", ToastAndroid.SHORT);
       router.back();
-    } catch {
-      ToastAndroid.show("Gagal memperbarui banner", ToastAndroid.SHORT);
+    } catch (error) {
+      ToastAndroid.show(
+        getApiErrorMessage(error, "Gagal memperbarui banner"),
+        ToastAndroid.SHORT,
+      );
     } finally {
       setIsSaving(false);
     }
   };
 
+  const runDelete = async () => {
+    if (!id || !banner) {
+      return;
+    }
+
+    const imageToDelete = (formData.image || originalImage || "").trim();
+
+    try {
+      await deleteBannerMutation.mutateAsync(id);
+
+      if (imageToDelete) {
+        try {
+          await removeMediaMutation.mutateAsync({ fileUrl: imageToDelete });
+        } catch {
+          ToastAndroid.show(
+            "Banner terhapus, tetapi gambar lama gagal dihapus.",
+            ToastAndroid.SHORT,
+          );
+        }
+      }
+
+      ToastAndroid.show("Banner berhasil dihapus", ToastAndroid.SHORT);
+      router.back();
+    } catch (error) {
+      ToastAndroid.show(
+        getApiErrorMessage(error, "Gagal menghapus banner"),
+        ToastAndroid.SHORT,
+      );
+    }
+  };
+
+  const handleDelete = () => {
+    if (isBusy) {
+      return;
+    }
+
+    Alert.alert("Hapus Banner", "Yakin ingin menghapus banner ini?", [
+      {
+        text: "Batal",
+        style: "cancel",
+      },
+      {
+        text: "Hapus",
+        style: "destructive",
+        onPress: () => {
+          void runDelete();
+        },
+      },
+    ]);
+  };
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-slate-950">
+        <ActivityIndicator size="large" color="#3b82f6" />
+      </View>
+    );
+  }
+
+  if (isError || !banner) {
+    return (
+      <View className="flex-1 items-center justify-center bg-slate-950 px-6">
+        <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
+        <Text className="mt-4 text-center font-manrope text-white">
+          Gagal memuat detail banner
+        </Text>
+        <Pressable
+          onPress={() => {
+            void refetch();
+          }}
+          className="mt-4 rounded-xl bg-blue-600 px-6 py-3"
+        >
+          <Text className="font-manrope-semibold text-white">Coba Lagi</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView edges={["bottom"]} className="flex-1 bg-slate-950">
       <View className="flex-1">
-        {/* Header */}
         <View className="flex-row items-center border-b border-slate-800 px-4 py-3">
           <Pressable
             onPress={() => router.back()}
@@ -143,7 +276,7 @@ export default function EditBannerScreen() {
             <Ionicons name="arrow-back" size={20} color="#f8fafc" />
           </Pressable>
           <Text className="flex-1 font-manrope-bold text-xl text-white">
-            Edit Banner
+            Banner Detail
           </Text>
         </View>
 
@@ -152,7 +285,6 @@ export default function EditBannerScreen() {
           contentContainerClassName="px-4 py-6 pb-28"
           showsVerticalScrollIndicator={false}
         >
-          {/* Image Preview */}
           <View className="mb-6">
             <Text className="font-manrope-semibold text-base text-white">
               Preview
@@ -175,9 +307,7 @@ export default function EditBannerScreen() {
             </View>
           </View>
 
-          {/* Form Fields */}
           <View className="gap-5">
-            {/* Title */}
             <View>
               <Text className="font-manrope-semibold text-sm text-white">
                 Title
@@ -185,21 +315,20 @@ export default function EditBannerScreen() {
               <TextInput
                 value={formData.title || ""}
                 onChangeText={(text) =>
-                  setFormData({ ...formData, title: text })
+                  setFormData((current) => ({ ...current, title: text }))
                 }
                 placeholder="Enter banner title..."
                 placeholderTextColor="#64748b"
+                editable={!isBusy}
                 className="mt-2 rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 font-manrope text-white"
               />
             </View>
 
-            {/* Image Picker Section */}
             <View>
               <Text className="font-manrope-semibold text-sm text-white">
                 Upload Image
               </Text>
 
-              {/* Selected Image Preview */}
               {selectedImage && (
                 <View className="mt-3 overflow-hidden rounded-xl border border-slate-600 bg-slate-800">
                   <Image
@@ -221,13 +350,12 @@ export default function EditBannerScreen() {
                 </View>
               )}
 
-              {/* Pick & Upload Buttons */}
               <View className="mt-3 flex-row gap-2">
                 <Pressable
                   onPress={handlePickImage}
-                  disabled={isUploading}
+                  disabled={isBusy}
                   className={`flex-1 flex-row items-center justify-center rounded-lg border py-3 ${
-                    isUploading
+                    isBusy
                       ? "border-slate-600 bg-slate-800"
                       : "border-slate-600 bg-slate-900"
                   }`}
@@ -235,18 +363,10 @@ export default function EditBannerScreen() {
                   <Ionicons
                     name="image-outline"
                     size={16}
-                    color={
-                      isUploading
-                        ? "#64748b"
-                        : "#e2e8f0"
-                    }
+                    color={isBusy ? "#64748b" : "#e2e8f0"}
                   />
                   <Text
-                    className={`ml-2 font-manrope-semibold text-sm ${
-                      isUploading
-                        ? "text-slate-500"
-                        : "text-white"
-                    }`}
+                    className={`ml-2 font-manrope-semibold text-sm ${isBusy ? "text-slate-500" : "text-white"}`}
                   >
                     Pick Image
                   </Text>
@@ -254,9 +374,9 @@ export default function EditBannerScreen() {
 
                 <Pressable
                   onPress={handleUploadImage}
-                  disabled={!selectedImage || isUploading}
+                  disabled={!selectedImage || isBusy}
                   className={`flex-1 flex-row items-center justify-center rounded-lg py-3 ${
-                    !selectedImage || isUploading
+                    !selectedImage || isBusy
                       ? "bg-slate-700"
                       : "bg-amber-600"
                   }`}
@@ -277,19 +397,8 @@ export default function EditBannerScreen() {
                   )}
                 </Pressable>
               </View>
-
-              {/* URL Status */}
-              {formData.image && (
-                <View className="mt-3 flex-row items-center rounded-lg border border-green-600/30 bg-green-600/10 px-3 py-2">
-                  <Ionicons name="checkmark-circle" size={16} color="#22c55e" />
-                  <Text className="ml-2 flex-1 font-manrope text-xs text-green-400">
-                    Image uploaded successfully
-                  </Text>
-                </View>
-              )}
             </View>
 
-            {/* Is Show */}
             <View className="flex-row items-center justify-between rounded-lg border border-slate-700 bg-slate-900 px-4 py-3">
               <Text className="font-manrope-semibold text-sm text-white">
                 Show on Homepage
@@ -297,20 +406,38 @@ export default function EditBannerScreen() {
               <Switch
                 value={formData.isShow || false}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, isShow: value })
+                  setFormData((current) => ({ ...current, isShow: value }))
                 }
+                disabled={isBusy}
                 trackColor={{ false: "#475569", true: "#10b981" }}
                 thumbColor={formData.isShow ? "#34d399" : "#94a3b8"}
               />
             </View>
+
+            <View className="rounded-lg border border-slate-700 bg-slate-900 p-4">
+              <Text className="font-manrope-semibold text-sm text-white">
+                Banner Information
+              </Text>
+              <View className="mt-3 gap-2">
+                <Text className="font-manrope text-xs text-slate-300">
+                  ID: {banner._id}
+                </Text>
+                <Text className="font-manrope text-xs text-slate-300">
+                  Created: {new Date(banner.createdAt).toLocaleString("id-ID")}
+                </Text>
+                <Text className="font-manrope text-xs text-slate-300">
+                  Updated: {new Date(banner.updatedAt).toLocaleString("id-ID")}
+                </Text>
+              </View>
+            </View>
           </View>
         </ScrollView>
 
-        {/* Action Buttons */}
         <View className="border-t border-slate-800 bg-slate-950 px-4 py-4">
           <View className="flex-row gap-3">
             <Pressable
               onPress={() => router.back()}
+              disabled={isBusy}
               className="flex-1 rounded-lg border border-slate-700 bg-slate-900 py-3"
             >
               <Text className="text-center font-manrope-semibold text-white">
@@ -319,14 +446,14 @@ export default function EditBannerScreen() {
             </Pressable>
             <Pressable
               onPress={handleSave}
-              disabled={isSaving || !formData.image?.trim()}
+              disabled={isBusy || !formData.image?.trim()}
               className={`flex-1 items-center justify-center rounded-lg py-3 ${
-                isSaving || !formData.image?.trim()
+                isBusy || !formData.image?.trim()
                   ? "bg-slate-500"
                   : "bg-blue-600"
               }`}
             >
-              {isSaving ? (
+              {isSaving || updateBannerMutation.isPending ? (
                 <ActivityIndicator color="white" />
               ) : (
                 <Text
@@ -339,6 +466,29 @@ export default function EditBannerScreen() {
               )}
             </Pressable>
           </View>
+
+          <Pressable
+            onPress={handleDelete}
+            disabled={isBusy}
+            className="mt-3 items-center rounded-lg bg-red-600 py-3 disabled:opacity-60"
+          >
+            {deleteBannerMutation.isPending ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="font-manrope-semibold text-white">
+                Delete Banner
+              </Text>
+            )}
+          </Pressable>
+
+          {isRefetching && (
+            <View className="mt-2 flex-row items-center justify-center">
+              <ActivityIndicator size="small" color="#64748b" />
+              <Text className="ml-2 font-manrope text-xs text-slate-400">
+                Memperbarui detail...
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     </SafeAreaView>

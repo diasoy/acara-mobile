@@ -2,21 +2,81 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
+  ToastAndroid,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useBanners } from "@/hooks/useBanner";
+import { useBanners, useDeleteBanner } from "@/hooks/useBanner";
+import { useRemoveMedia } from "@/hooks/useMedia";
 import { useThemeMode } from "@/hooks/useThemeMode";
+import { getApiErrorMessage } from "@/lib/get-api-error-message";
+import type { Banner } from "@/types/banner";
 
 export default function BannerScreen() {
   const router = useRouter();
   const { isDarkMode } = useThemeMode();
-  const { data, isLoading, isError } = useBanners();
+  const { data, isLoading, isError, refetch, isRefetching } = useBanners();
+  const deleteBannerMutation = useDeleteBanner();
+  const removeMediaMutation = useRemoveMedia();
+  const deletingBannerId = deleteBannerMutation.isPending
+    ? deleteBannerMutation.variables
+    : undefined;
+
+  const runDeleteBanner = async (banner: Banner) => {
+    try {
+      await deleteBannerMutation.mutateAsync(banner._id);
+
+      const imageUrl = banner.image?.trim();
+      if (imageUrl) {
+        try {
+          await removeMediaMutation.mutateAsync({ fileUrl: imageUrl });
+        } catch {
+          ToastAndroid.show(
+            "Banner terhapus, tetapi gambar lama gagal dihapus.",
+            ToastAndroid.SHORT,
+          );
+        }
+      }
+
+      ToastAndroid.show("Banner berhasil dihapus.", ToastAndroid.SHORT);
+    } catch (error) {
+      ToastAndroid.show(
+        getApiErrorMessage(error, "Gagal menghapus banner."),
+        ToastAndroid.SHORT,
+      );
+    }
+  };
+
+  const handleDeleteBanner = (banner: Banner) => {
+    if (deleteBannerMutation.isPending || removeMediaMutation.isPending) {
+      return;
+    }
+
+    Alert.alert(
+      "Hapus Banner",
+      `Hapus banner "${banner.title}"?`,
+      [
+        {
+          text: "Batal",
+          style: "cancel",
+        },
+        {
+          text: "Hapus",
+          style: "destructive",
+          onPress: () => {
+            void runDeleteBanner(banner);
+          },
+        },
+      ],
+    );
+  };
 
   if (isLoading) {
     return (
@@ -53,6 +113,15 @@ export default function BannerScreen() {
       <ScrollView
         className={`flex-1 ${isDarkMode ? "bg-slate-950" : "bg-slate-100"}`}
         contentContainerClassName="px-5 py-6 pb-8"
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={() => {
+              void refetch();
+            }}
+            tintColor={isDarkMode ? "#60a5fa" : "#3b82f6"}
+          />
+        }
       >
         <Text
           className={`font-manrope-bold text-3xl ${isDarkMode ? "text-white" : "text-slate-900"}`}
@@ -148,14 +217,21 @@ export default function BannerScreen() {
 
                   <Pressable
                     onPress={() => {
-                      /* TODO: Implement delete */
+                      handleDeleteBanner(banner);
                     }}
+                    disabled={deletingBannerId === banner._id}
                     className={`flex-1 flex-row items-center justify-center rounded-lg py-2 ${isDarkMode ? "bg-red-600" : "bg-red-500"}`}
                   >
-                    <Ionicons name="trash-outline" size={14} color="white" />
-                    <Text className="ml-2 font-manrope-semibold text-xs text-white">
-                      Delete
-                    </Text>
+                    {deletingBannerId === banner._id ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <>
+                        <Ionicons name="trash-outline" size={14} color="white" />
+                        <Text className="ml-2 font-manrope-semibold text-xs text-white">
+                          Delete
+                        </Text>
+                      </>
+                    )}
                   </Pressable>
                 </View>
               </View>

@@ -36,6 +36,15 @@ export interface UploadMediaMultipleResponse {
   data: Media[];
 }
 
+export interface RemoveMediaPayload {
+  fileUrl: string;
+}
+
+export interface RemoveMediaResponse {
+  meta: Meta;
+  data?: unknown;
+}
+
 export interface MediaPayload {
   file: {
     uri: string;
