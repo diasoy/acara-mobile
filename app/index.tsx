@@ -23,11 +23,11 @@ export default function Index() {
   }
 
   if (user?.role === "admin") {
-    return <Redirect href="/(admin)/home" />;
+    return <Redirect href="/(admin)/(tabs)/home" />;
   }
 
   if (user?.role === "member") {
-    return <Redirect href="/(member)/home" />;
+    return <Redirect href="/(member)/(tabs)/home" />;
   }
 
   return <Redirect href="/(auth)/login" />;

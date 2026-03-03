@@ -1,5 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { ScrollView, Text, View } from "react-native";
+import { Link } from "expo-router";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -30,26 +31,30 @@ const modules = [
     title: "Event Management",
     subtitle: "Create & Edit",
     icon: "calendar-outline" as const,
+    href: "/(admin)/event" as const,
   },
   {
     id: "category-list",
     title: "Category List",
     subtitle: "Tags & Types",
     icon: "apps-outline" as const,
+    href: "/(admin)/category" as const,
   },
   {
     id: "banner-settings",
     title: "Banner Settings",
     subtitle: "App Sliders",
     icon: "images-outline" as const,
+    href: "/(admin)/banner" as const,
   },
   {
     id: "transaction-reports",
     title: "Transaction Reports",
     subtitle: "Financials",
     icon: "receipt-outline" as const,
+    href: "/(admin)/transaction" as const,
   },
-];
+] as const;
 
 const recentBookings = [
   {
@@ -75,7 +80,10 @@ export default function AdminHomeScreen() {
   const { isDarkMode } = useThemeMode();
 
   return (
-    <SafeAreaView edges={["top"]} className={`flex-1 ${isDarkMode ? "bg-[#09071d]" : "bg-slate-100"}`}>
+    <SafeAreaView
+      edges={["top"]}
+      className={`flex-1 ${isDarkMode ? "bg-[#09071d]" : "bg-slate-100"}`}
+    >
       <ScrollView className="flex-1" contentContainerClassName="pb-8">
         <View
           className={`border-b px-5 pb-5 pt-3 ${isDarkMode ? "border-[#1e1a48]" : "border-slate-200"}`}
@@ -86,7 +94,11 @@ export default function AdminHomeScreen() {
                 <View
                   className={`h-11 w-11 items-center justify-center rounded-full border ${isDarkMode ? "border-[#3a2d7f] bg-[#1a1440]" : "border-slate-300 bg-white"}`}
                 >
-                  <Ionicons name="person" size={20} color={isDarkMode ? "#d9d5ff" : "#334155"} />
+                  <Ionicons
+                    name="person"
+                    size={20}
+                    color={isDarkMode ? "#d9d5ff" : "#334155"}
+                  />
                 </View>
                 <View
                   className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border bg-emerald-400 ${isDarkMode ? "border-[#09071d]" : "border-slate-100"}`}
@@ -94,7 +106,9 @@ export default function AdminHomeScreen() {
               </View>
 
               <View className="ml-3">
-                <Text className={`font-manrope text-sm ${isDarkMode ? "text-[#9f9ac8]" : "text-slate-500"}`}>
+                <Text
+                  className={`font-manrope text-sm ${isDarkMode ? "text-[#9f9ac8]" : "text-slate-500"}`}
+                >
                   Admin panel
                 </Text>
                 <Text
@@ -108,7 +122,11 @@ export default function AdminHomeScreen() {
             <View
               className={`relative h-10 w-10 items-center justify-center rounded-xl ${isDarkMode ? "bg-[#171237]" : "bg-white"}`}
             >
-              <Ionicons name="notifications" size={18} color={isDarkMode ? "#e6e3ff" : "#334155"} />
+              <Ionicons
+                name="notifications"
+                size={18}
+                color={isDarkMode ? "#e6e3ff" : "#334155"}
+              />
               <View className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-rose-500" />
             </View>
           </View>
@@ -125,7 +143,11 @@ export default function AdminHomeScreen() {
                   <View
                     className={`h-8 w-8 items-center justify-center rounded-lg ${isDarkMode ? "bg-[#252057]" : "bg-slate-100"}`}
                   >
-                    <Ionicons name={card.icon} size={16} color={card.accentColor} />
+                    <Ionicons
+                      name={card.icon}
+                      size={16}
+                      color={card.accentColor}
+                    />
                   </View>
                   <View className="rounded-full bg-emerald-500/15 px-2 py-1">
                     <Text className="font-manrope-semibold text-xs text-emerald-400">
@@ -148,40 +170,53 @@ export default function AdminHomeScreen() {
           </View>
 
           <View className="mt-7 flex-row items-center justify-between">
-            <Text className={`font-manrope-bold text-3xl ${isDarkMode ? "text-white" : "text-slate-900"}`}>
+            <Text
+              className={`font-manrope-bold text-3xl ${isDarkMode ? "text-white" : "text-slate-900"}`}
+            >
               Management Modules
-            </Text>
-            <Text className={`font-manrope-semibold text-sm ${isDarkMode ? "text-[#6653ff]" : "text-emerald-600"}`}>
-              View All
             </Text>
           </View>
 
           <View className="mt-3 flex-row flex-wrap justify-between">
             {modules.map((module) => (
-              <View
-                key={module.id}
-                className={`mb-3 w-[48.5%] rounded-2xl p-4 ${isDarkMode ? "bg-[#18153b]" : "bg-white"}`}
-              >
-                <View
-                  className={`h-9 w-9 items-center justify-center rounded-lg ${isDarkMode ? "bg-[#252057]" : "bg-slate-100"}`}
+              <Link key={module.id} href={module.href as any} asChild>
+                <Pressable
+                  className={`mb-3 w-[48.5%] rounded-2xl border p-4 active:opacity-85 ${isDarkMode ? "border-[#2c2865] bg-[#18153b]" : "border-slate-200 bg-white"}`}
                 >
-                  <Ionicons name={module.icon} size={17} color={isDarkMode ? "#ffffff" : "#334155"} />
-                </View>
-                <Text
-                  className={`mt-4 font-manrope-bold text-2xl leading-7 ${isDarkMode ? "text-white" : "text-slate-900"}`}
-                >
-                  {module.title}
-                </Text>
-                <Text
-                  className={`mt-1 font-manrope-medium text-sm ${isDarkMode ? "text-[#8e89b8]" : "text-slate-600"}`}
-                >
-                  {module.subtitle}
-                </Text>
-              </View>
+                  <View
+                    className={`h-9 w-9 items-center justify-center rounded-lg ${isDarkMode ? "bg-[#252057]" : "bg-slate-100"}`}
+                  >
+                    <Ionicons
+                      name={module.icon}
+                      size={17}
+                      color={isDarkMode ? "#ffffff" : "#334155"}
+                    />
+                  </View>
+                  <Text
+                    className={`mt-4 font-manrope-bold text-2xl leading-7 ${isDarkMode ? "text-white" : "text-slate-900"}`}
+                  >
+                    {module.title}
+                  </Text>
+                  <View className="mt-2 flex-row items-center justify-between">
+                    <Text
+                      className={`font-manrope-medium text-sm ${isDarkMode ? "text-[#8e89b8]" : "text-slate-600"}`}
+                    >
+                      {module.subtitle}
+                    </Text>
+                    <Ionicons
+                      name="arrow-forward-circle-outline"
+                      size={18}
+                      color={isDarkMode ? "#a7f3d0" : "#059669"}
+                    />
+                  </View>
+                </Pressable>
+              </Link>
             ))}
           </View>
 
-          <Text className={`mt-2 font-manrope-bold text-3xl ${isDarkMode ? "text-white" : "text-slate-900"}`}>
+          <Text
+            className={`mt-2 font-manrope-bold text-3xl ${isDarkMode ? "text-white" : "text-slate-900"}`}
+          >
             Recent Bookings
           </Text>
 
@@ -198,7 +233,11 @@ export default function AdminHomeScreen() {
                     <View
                       className={`h-11 w-11 items-center justify-center rounded-xl ${isDarkMode ? "bg-[#2b2659]" : "bg-slate-100"}`}
                     >
-                      <Ionicons name={booking.icon} size={20} color={isDarkMode ? "#f8fafc" : "#0f172a"} />
+                      <Ionicons
+                        name={booking.icon}
+                        size={20}
+                        color={isDarkMode ? "#f8fafc" : "#0f172a"}
+                      />
                     </View>
                     <View className="ml-3">
                       <Text
